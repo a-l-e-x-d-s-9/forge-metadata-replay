@@ -1,5 +1,6 @@
 """A selectable txt2img script; all queue controls bypass Gradio's generation queue."""
 import json
+import importlib
 import sys
 import tempfile
 import uuid
@@ -13,6 +14,11 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
+from metadata_replay import forge as replay_forge
+
+# Forge reloads script files during Reload UI; refresh this adapter too, while
+# retaining the separate queue module and its existing in-memory sessions.
+importlib.reload(replay_forge)
 from metadata_replay.forge import CHOICES, IMAGE_SUFFIXES, load_image, run_queue
 from metadata_replay.queue import decode_document, get_queue
 
@@ -109,6 +115,8 @@ class MetadataReplay(scripts.Script):
                     "Seeds are fresh unless **Original seed** is checked.")
         token = gr.Textbox(value=lambda: uuid.uuid4().hex, elem_id="mr_token", elem_classes=["mr-internal"], label="Queue session")
         selected = gr.CheckboxGroup(choices=CHOICES, value=["Prompt"], label="Reuse from source metadata", elem_id="mr_reuse")
+        remove_loras = gr.Checkbox(value=True, label="Remove LoRAs from prompts", elem_id="mr_remove_loras",
+                                  info="Strip <lora:…> tags from generation prompts, including negative and hires prompts. Source metadata and JSON exports keep the original tags.")
         files = gr.File(file_count="multiple", file_types=["image"], type="filepath", label="Drop source images here (metadata is retained after upload)", elem_id="mr_images")
         with gr.Row():
             json_file = gr.File(file_count="single", file_types=[".json"], type="filepath", label="Import queue JSON", elem_id="mr_json_import")
@@ -136,7 +144,7 @@ class MetadataReplay(scripts.Script):
             load_folder.click(folder_images, [token, folder, recursive], outputs, **events)
         send.click(command, [token, payload], outputs, **events)
         tick.click(poll, [token, revision], outputs, **events)
-        return [token, selected]
+        return [token, selected, remove_loras]
 
-    def run(self, p, token, selected):
-        return run_queue(p, get_queue(token), set(selected or []))
+    def run(self, p, token, selected, remove_loras=True):
+        return run_queue(p, get_queue(token), set(selected or []), remove_loras=remove_loras)

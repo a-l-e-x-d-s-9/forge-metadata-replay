@@ -16,6 +16,16 @@ from .queue import Entry, identity
 CHOICES = ["Prompt", "Negative prompt", "Size", "Model", "Original seed", "Sampler / scheduler",
            "Steps", "CFG scale", "Distilled CFG scale", "Clip skip", "VAE / text encoders", "Hires fix"]
 IMAGE_SUFFIXES = {".png", ".jpg", ".jpeg", ".webp", ".avif", ".tif", ".tiff", ".jxl"}
+LORA_TAG = re.compile(r"<lora:[^<>\r\n]+>", re.IGNORECASE)
+
+
+def strip_loras(prompt):
+    if isinstance(prompt, list):
+        return [strip_loras(text) for text in prompt]
+    if not isinstance(prompt, str):
+        return prompt
+    cleaned, count = LORA_TAG.subn("", prompt)
+    return cleaned.strip() if count else prompt
 
 
 def thumbnail(image):
@@ -72,7 +82,7 @@ def number(params, key, cast, minimum=None, maximum=None):
     return value
 
 
-def build_processing(base, entry, selected, seed, batch):
+def build_processing(base, entry, selected, seed, batch, remove_loras=True):
     from modules import sd_models, sd_samplers
 
     p = copy.copy(base)
@@ -160,11 +170,15 @@ def build_processing(base, entry, selected, seed, batch):
             if key in params:
                 value = str(params[key])
                 setattr(p, attribute, None if value.startswith("Use same ") else value)
+    if remove_loras:
+        for attribute in ("prompt", "negative_prompt", "hr_prompt", "hr_negative_prompt"):
+            if hasattr(p, attribute):
+                setattr(p, attribute, strip_loras(getattr(p, attribute)))
     p.extra_generation_params["Metadata Replay source"] = entry.name
     return p
 
 
-def run_queue(base, queue, selected):
+def run_queue(base, queue, selected, remove_loras=True):
     from modules import errors, processing, shared
 
     queue.begin(int(base.n_iter))
@@ -186,7 +200,7 @@ def run_queue(base, queue, selected):
                     seeds[entry.id] = number(entry.parameters, "Seed", int, 0, 2**32 - 1) if (
                         "Original seed" in selected and "Seed" in entry.parameters
                     ) else secrets.randbelow(2**32)
-                p = build_processing(base, entry, selected, seeds[entry.id], batch)
+                p = build_processing(base, entry, selected, seeds[entry.id], batch, remove_loras=remove_loras)
                 # Recompute the remaining batch count after queue edits or navigation.
                 with queue.condition:
                     position = next(i for i, item in enumerate(queue.entries) if item.id == entry.id)

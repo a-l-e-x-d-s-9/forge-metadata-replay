@@ -6,7 +6,7 @@ from unittest.mock import patch
 
 from PIL import Image
 
-from metadata_replay.forge import run_queue
+from metadata_replay.forge import run_queue, strip_loras
 from metadata_replay.queue import Entry, ReplayQueue, identity
 
 
@@ -88,6 +88,36 @@ class GenerationTests(unittest.TestCase):
         self.assertEqual(self.q.entries[0].status, "error")
         self.assertEqual(result.all_prompts, ["b"] * 6)
         self.assertIn("not-installed", result.comments)
+
+    def test_loras_removed_by_default_without_editing_source_metadata(self):
+        tag = "<lora:Example_Portrait_Style_1.0:1>"
+        source = self.q.entries[0].parameters
+        source["Prompt"] = "portrait " + tag
+        source["Negative prompt"] = "<lora:negative:0.5> blurry"
+        self.base.hr_prompt = "hires <LoRA:detail:0.7>"
+        self.base.hr_negative_prompt = "<lora:noise:-1> noisy"
+        run_queue(self.base, self.q, {"Prompt", "Negative prompt"})
+        p = self.calls[0]
+        self.assertEqual(p.prompt, "portrait")
+        self.assertEqual(p.negative_prompt, "blurry")
+        self.assertEqual(p.hr_prompt, "hires")
+        self.assertEqual(p.hr_negative_prompt, "noisy")
+        self.assertEqual(source["Prompt"], "portrait " + tag)
+        self.assertIn(tag, self.q.document()["entries"][0]["parameters"]["Prompt"])
+        self.assertEqual(self.base.hr_prompt, "hires <LoRA:detail:0.7>")
+
+    def test_loras_preserved_when_option_disabled(self):
+        prompt = "portrait <lora:Example_Portrait_Style_1.0:1>"
+        self.q.entries[0].parameters["Prompt"] = prompt
+        result = run_queue(self.base, self.q, {"Prompt"}, remove_loras=False)
+        self.assertEqual(result.all_prompts[0], prompt)
+
+    def test_strip_multiple_loras_preserves_other_prompt_syntax(self):
+        self.assertEqual(strip_loras("<lora:a:1><LORA:b:0.5> (portrait:1.2), <hypernet:c:1>"),
+                         "(portrait:1.2), <hypernet:c:1>")
+        self.assertEqual(strip_loras("line one\n<lora:a:1>line two"), "line one\nline two")
+        self.assertEqual(strip_loras(["<lora:a:1>portrait", "landscape"]), ["portrait", "landscape"])
+        self.assertEqual(strip_loras("  text without tags  "), "  text without tags  ")
 
 
 if __name__ == "__main__":

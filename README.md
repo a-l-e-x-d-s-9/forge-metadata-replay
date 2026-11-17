@@ -12,6 +12,9 @@ settings. No img2img image conditioning is applied.
 - Prompt reuse and fresh random seeds by default. Optionally reuse negative
   prompts, size, checkpoint, original seed, sampler/scheduler, steps, CFG,
   distilled CFG, clip skip, VAE/text encoders, and hires fix.
+- **Remove LoRAs from prompts** is enabled by default. It strips `<lora:…>` tags
+  from positive, negative, and hires generation prompts. Disable it to reuse
+  those tags. Source metadata, editable prompts, and JSON exports retain them.
 - The normal txt2img **Batch count × Batch size applies to every queue entry**.
   There are no separate batch fields in this script.
 - Shuffle, sort filenames A–Z or Z–A (naturally, with 2 before 10), or reverse the
@@ -54,7 +57,8 @@ has not been established.
    are skipped with an explanation.
 3. Select which settings to reuse. Missing source settings retain the current
    txt2img values. Prompt reuse clears selected txt2img styles because the source
-   prompt already contains its style text. LoRA tags in the prompt remain active.
+   prompt already contains its style text. Uncheck **Remove LoRAs from prompts**
+   if you want the source prompt's LoRA tags to remain active.
 4. Arrange entries and set Batch count / Batch size in the normal txt2img UI.
 5. Click **Generate**. Pause before navigating if you want to inspect the list;
    Previous, Skip, and Jump keep the paused state until Resume is clicked.
