@@ -9,6 +9,9 @@ settings. No img2img image conditioning is applied.
 - Upload multiple images from your browser PC. Forge reads their metadata once
   using its PNG Info reader. The queue retains the extracted settings and a tiny
   source thumbnail; it does not require the uploaded originals for generation.
+- Compact import panels put **🖼️ Images** on the left in blue and **📄 JSON queue**
+  on the right in purple. Server-folder controls stay with images; JSON import
+  mode, export, and download stay with JSON. Narrow screens stack the panels.
 - Prompt reuse and fresh random seeds by default. Optionally reuse negative
   prompts, size, checkpoint, original seed, sampler/scheduler, steps, CFG,
   distilled CFG, clip skip, VAE/text encoders, and hires fix.

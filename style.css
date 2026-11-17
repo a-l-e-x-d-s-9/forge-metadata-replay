@@ -1,4 +1,20 @@
 .mr-internal { display: none !important; }
+#mr_heading h2 { font-size: 1.65rem; line-height: 1.25; margin: 6px 0 2px; font-weight: 750; }
+#mr_import_row { gap: 12px; align-items: stretch; margin-top: 8px; }
+#mr_image_panel { --mr-panel-border: #69a4e6; --mr-panel-ink: #195c9b; --mr-panel-fill: rgba(59, 130, 246, .07); }
+#mr_json_panel { --mr-panel-border: #ab89df; --mr-panel-ink: #7143a9; --mr-panel-fill: rgba(139, 92, 246, .07); }
+#mr_import_row > .mr-import-panel { box-sizing: border-box; border: 1px solid var(--mr-panel-border) !important; border-top-width: 4px !important; border-radius: 12px !important; padding: 12px !important; background: var(--mr-panel-fill) !important; gap: 10px; }
+#mr_import_row #mr_image_panel { border-color: #69a4e6 !important; }
+#mr_import_row #mr_json_panel { border-color: #ab89df !important; }
+#mr_import_row .mr-panel-heading h3 { font-size: 1.25rem; line-height: 1.3; font-weight: 700; color: var(--mr-panel-ink); margin: 0 0 4px; }
+#mr_import_row .mr-panel-heading p { font-size: .82rem; line-height: 1.4; color: var(--body-text-color-subdued, #64748b); margin: 0; }
+#mr_import_row #mr_images, #mr_import_row #mr_json_import { border: 1px dashed var(--mr-panel-border) !important; border-radius: 8px; }
+#mr_import_row #mr_images .wrap, #mr_import_row #mr_json_import .wrap { min-height: 0; }
+#mr_json_mode { background: transparent; border: 0; padding: 0; }
+#mr_download:not(:has(a[href])) { display: none !important; }
+#mr_download { min-height: 0 !important; }
+.dark #mr_image_panel { --mr-panel-ink: #93c5fd; --mr-panel-fill: rgba(59, 130, 246, .1); }
+.dark #mr_json_panel { --mr-panel-ink: #c4b5fd; --mr-panel-fill: rgba(139, 92, 246, .1); }
 #mr_app { margin-top: 12px; }
 #mr_app .mr-toolbar { display: flex; flex-wrap: wrap; gap: 8px; }
 #mr_app .mr-button { border: 1px solid var(--border-color-primary, #777); border-radius: 6px; padding: 6px 10px; background: var(--button-secondary-background-fill, #333); color: var(--button-secondary-text-color, #eee); cursor: pointer; font: inherit; }
@@ -25,6 +41,8 @@
 #mr_app .mr-error { color: #eb8c85; overflow-wrap: anywhere; }
 #mr_app .mr-empty { opacity: .7; padding: 24px 10px; }
 @media (max-width: 600px) {
+    #mr_import_row { flex-direction: column; }
+    #mr_import_row > .mr-import-panel { min-width: 0 !important; width: 100%; }
     #mr_app .mr-entry { flex-wrap: wrap; }
     #mr_app .mr-entry-controls { width: 100%; }
     #mr_app .mr-thumb { width: 55px; min-width: 55px; }

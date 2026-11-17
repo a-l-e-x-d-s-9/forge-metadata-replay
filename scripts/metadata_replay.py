@@ -110,6 +110,7 @@ class MetadataReplay(scripts.Script):
         return not is_img2img
 
     def ui(self, is_img2img):
+        gr.Markdown("## 🔁 Metadata Replay", elem_id="mr_heading")
         gr.Markdown("Drop source images, arrange their metadata, then use **txt2img Generate**. "
                     "Each entry uses the main **Batch count × Batch size**. Unchecked settings use the txt2img controls. "
                     "Seeds are fresh unless **Original seed** is checked.")
@@ -117,18 +118,21 @@ class MetadataReplay(scripts.Script):
         selected = gr.CheckboxGroup(choices=CHOICES, value=["Prompt"], label="Reuse from source metadata", elem_id="mr_reuse")
         remove_loras = gr.Checkbox(value=True, label="Remove LoRAs from prompts", elem_id="mr_remove_loras",
                                   info="Strip <lora:…> tags from generation prompts, including negative and hires prompts. Source metadata and JSON exports keep the original tags.")
-        files = gr.File(file_count="multiple", file_types=["image"], type="filepath", label="Drop source images here (metadata is retained after upload)", elem_id="mr_images")
-        with gr.Row():
-            json_file = gr.File(file_count="single", file_types=[".json"], type="filepath", label="Import queue JSON", elem_id="mr_json_import")
-            with gr.Column():
-                mode = gr.Radio(["Merge and deduplicate", "Replace queue"], value="Merge and deduplicate", label="JSON import mode")
-                export = gr.Button("Export queue as JSON", elem_id="mr_export")
-                download = gr.File(label="Download queue JSON", interactive=False, elem_id="mr_download")
-        if not shared.cmd_opts.hide_ui_dir_config:
-            with gr.Accordion("Import a folder on the Forge server", open=False):
-                folder = gr.Textbox(label="Server folder (on the computer running Forge)")
-                recursive = gr.Checkbox(label="Include subfolders", value=False)
-                load_folder = gr.Button("Add folder images")
+        with gr.Row(elem_id="mr_import_row", equal_height=True):
+            with gr.Column(scale=1, min_width=240, elem_id="mr_image_panel", elem_classes=["mr-import-panel"]):
+                gr.HTML('<div class="mr-panel-heading"><h3>🖼️ Images</h3><p>Add generation metadata from source images.</p></div>')
+                files = gr.File(file_count="multiple", file_types=["image"], type="filepath", label="Drop source images", show_label=False, height=132, elem_id="mr_images")
+                if not shared.cmd_opts.hide_ui_dir_config:
+                    with gr.Accordion("📁 Folder on the Forge server", open=False, elem_id="mr_folder_import"):
+                        folder = gr.Textbox(label="Server folder", placeholder="/path/to/images")
+                        recursive = gr.Checkbox(label="Include subfolders", value=False)
+                        load_folder = gr.Button("Add folder images", size="sm")
+            with gr.Column(scale=1, min_width=240, elem_id="mr_json_panel", elem_classes=["mr-import-panel"]):
+                gr.HTML('<div class="mr-panel-heading"><h3>📄 JSON queue</h3><p>Restore a saved queue or export this one.</p></div>')
+                json_file = gr.File(file_count="single", file_types=[".json"], type="filepath", label="Import queue JSON", show_label=False, height=132, elem_id="mr_json_import")
+                mode = gr.Radio(["Merge and deduplicate", "Replace queue"], value="Merge and deduplicate", label="On import", elem_id="mr_json_mode")
+                export = gr.Button("Export queue as JSON", size="sm", elem_id="mr_export")
+                download = gr.File(label="Download queue JSON", interactive=False, height=64, elem_id="mr_download")
         gr.HTML('<div id="mr_app"><div class="mr-toolbar"></div><div class="mr-status" role="status" aria-live="polite"></div><div class="mr-list"></div></div>')
         data = gr.Textbox(value="", label="Queue snapshot", elem_id="mr_snapshot", elem_classes=["mr-internal"])
         revision = gr.Number(value=-1, precision=0, elem_classes=["mr-internal"])
