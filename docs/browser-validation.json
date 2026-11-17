@@ -1,0 +1,14 @@
+{
+  "browser_errors": [],
+  "image_metadata": "passed",
+  "deduplication": "passed",
+  "reorder": "passed",
+  "sort_shuffle_and_subsequent_manual_reorder": "passed",
+  "json_round_trip": "passed",
+  "json_image_merge": "passed",
+  "paused_generation": "passed",
+  "generated_images": 8,
+  "generated_previews": "passed",
+  "gallery_metadata": "passed",
+  "optional_parameters": "passed"
+}
